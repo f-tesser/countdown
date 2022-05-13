@@ -298,11 +298,13 @@ HIDDEN void start_cntd()
 {
 	cntd = (CNTD_t *) calloc(1, sizeof(CNTD_t));
 
-	// Read environment variables
-	read_env();
+	hwp_usage = 0;
 
 	// Init local masters
 	init_local_masters();
+
+	// Read environment variables
+	read_env();
 
 	// Init PM
 	if(cntd->enable_eam_freq) {
@@ -310,8 +312,6 @@ HIDDEN void start_cntd()
 		// Checking HWP-States' usability.
 #ifdef HWP_AVAIL
 		uint64_t pstate;
-
-		hwp_usage = 0;
 
 		pstate = read_msr(IA32_PM_ENABLE);
 
