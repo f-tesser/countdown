@@ -318,7 +318,16 @@ HIDDEN void time_sample(int sig, siginfo_t *siginfo, void *context)
 	static double time_region[MAX_NUM_CPUS][2][2] = {0};
 	static uint64_t mpi_net[MAX_NUM_CPUS][2][2] = {0};
 	static uint64_t mpi_file[MAX_NUM_CPUS][2][2] = {0};
-	static uint64_t perf[MAX_NUM_CPUS][MAX_NUM_PERF_EVENTS][2] = {0};
+
+	typedef struct read_format {
+		uint64_t  raw_count;
+		uint64_t  time_enabled;
+		uint64_t  time_running;
+	} read_format_t;
+	// Objects with static storage duration will initialize to \"0\" if no
+	// initializer is specified.
+	static read_format_t perf[MAX_NUM_CPUS][MAX_NUM_PERF_EVENTS][2];
+
     double energy_pkg[MAX_NUM_SOCKETS] = {0};
     double energy_dram[MAX_NUM_SOCKETS] = {0};
 	double energy_gpu_sys[MAX_NUM_SOCKETS] = {0};
@@ -532,7 +541,30 @@ HIDDEN void time_sample(int sig, siginfo_t *siginfo, void *context)
 			{
 				for(j = 0; j < MAX_NUM_PERF_EVENTS; j++)
 				{
-					cntd->local_ranks[i]->perf[j][CURR] = diff_overflow(perf[i][j][curr], perf[i][j][prev], UINT64_MAX);
+					double time_en_c = 0.0;
+					double time_run_c = 0.0;
+					double time_mul_c = 0.0;
+					double d_raw_count_c;
+					double d_total_c;
+					double time_en_p = 0.0;
+					double time_run_p = 0.0;
+					double time_mul_p = 0.0;
+					double d_raw_count_p;
+					double d_total_p;
+
+					time_en_c = (double)perf[i][j][curr].time_enabled;
+					time_run_c = (double)perf[i][j][curr].time_running;
+					time_mul_c = time_en_c/time_run_c;
+					time_en_p = (double)perf[i][j][prev].time_enabled;
+					time_run_p = (double)perf[i][j][prev].time_running;
+					time_mul_p = time_en_p/time_run_p;
+
+					d_raw_count_c = (double)perf[i][j][curr].raw_count;
+					d_total_c = d_raw_count_c * time_mul_c;
+					d_raw_count_p = (double)perf[i][j][prev].raw_count;
+					d_total_p = d_raw_count_p * time_mul_p;
+
+					cntd->local_ranks[i]->perf[j][CURR] = diff_overflow((uint64_t)d_total_c, (uint64_t)d_total_p, UINT64_MAX);
 					cntd->local_ranks[i]->perf[j][TOT] += cntd->local_ranks[i]->perf[j][CURR];
 				}
 			}
