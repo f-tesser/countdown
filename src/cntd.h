@@ -164,11 +164,16 @@
 #define PERF_EVENT_5 					5
 #define PERF_EVENT_6 					6
 #define PERF_EVENT_7 					7
+#ifdef CNTD_MAX_NUM_CUSTOM_PERF
+#define MAX_NUM_CUSTOM_PERF             CNTD_MAX_NUM_CUSTOM_PERF
+#else
 #define MAX_NUM_CUSTOM_PERF				8
-#define PERF_INST_RET 					8
-#define PERF_CYCLES 					9
-#define PERF_CYCLES_REF					10
-#define MAX_NUM_PERF_EVENTS				11	// Max supported perf events
+#endif
+#define PERF_INST_RET 					MAX_NUM_CUSTOM_PERF
+#define PERF_CYCLES 					(MAX_NUM_CUSTOM_PERF + 1)
+#define PERF_CYCLES_REF					(MAX_NUM_CUSTOM_PERF + 2)
+
+#define MAX_NUM_PERF_EVENTS				(MAX_NUM_CUSTOM_PERF + 3)	// Max supported perf events
 
 // The libpfm4 library can be used to translate from
 // the name in the architectural manuals to the raw hex value
@@ -191,7 +196,13 @@
 
 // System files
 #define CPUINFO_MIN_FREQ 				"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq"
+#ifdef USERSPACE_GOV
+#define CPUINFO_MAX_FREQ				"/sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed"
+#else
 #define CPUINFO_MAX_FREQ 				"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"
+#endif
+#define CUR_CPUINFO_MIN_FREQ			"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_min_freq"
+#define CUR_CPUINFO_MAX_FREQ			"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_max_freq"
 
 #ifdef INTEL	
 
@@ -619,6 +630,7 @@ int delete_timer(timer_t timerID);
 // tool.c
 int str_to_bool(const char str[]);
 int read_str_from_file(char *filename, char *str);
+int write_int_to_file(char* filename, int value);
 double read_time();
 uint64_t diff_overflow(uint64_t end, uint64_t start, uint64_t overflow);
 int makedir(const char dir[]);

@@ -74,8 +74,27 @@ HIDDEN void set_pstate(int pstate)
 {
 	if(cntd->enable_eam_freq)
 	{
-#ifdef INTEL
+#ifdef CPUFREQ
+	char filename[STRING_SIZE];
+
+	snprintf(filename			 ,
+			 STRING_SIZE		 ,
+			 CUR_CPUINFO_MIN_FREQ,
+			 cntd->rank->cpu_id);
+	write_int_to_file(filename,
+					  pstate);
+
+	snprintf(filename			 ,
+			 STRING_SIZE		 ,
+			 CUR_CPUINFO_MAX_FREQ,
+			 cntd->rank->cpu_id);
+	write_int_to_file(filename,
+					  pstate);
+#endif
+#if !defined CPUFREQ && defined INTEL
+		int written_pstate;
 		int offset = IA32_PERF_CTL;
+		written_pstate = (pstate << 8) & 0xFF00;
 #ifdef HWP_AVAIL
 		if (hwp_usage) {
 			offset = IA32_HWP_REQUEST;
@@ -85,49 +104,39 @@ HIDDEN void set_pstate(int pstate)
 			  is composed by bits 15-8. Both of them are written to the same value,
 			  to disable, AT THE MOMENT, all hardware optimizations.
 			*/
-			write_msr(offset, pstate);
-			/*
-			  This is needed to write also \"Desired_Performance\" field of this
-			  HWP-state (bits 23-16), as well as \"Maximum_Performance\" and
-			  \"Minimum_Performance\" ones, because we are continuing getting very
-			  high fluctuations in frequency values. So, this should convey a hint
-			  more aggressive, to the hardware.
-			*/
-			//write_msr(offset, pstate << 16);
+			written_pstate = (pstate & 0xFF) | ((pstate << 8) & 0xFF00);
 		}
 #endif
-		write_msr(offset, pstate << 8);
+		write_msr(offset, written_pstate);
 #endif
 	}
 }
 
 HIDDEN void set_max_pstate()
 {
-#ifdef INTEL
-#ifdef HWP_AVAIL
-	if (hwp_usage) {
-		set_min_epp();
-		set_min_aw();
-	}
-#endif
-#endif
+//#ifdef HWP_AVAIL
+//	if (hwp_usage) {
+//		set_min_epp();
+//		set_min_aw();
+//	}
+//#endif
 
 	if(cntd->user_pstate[MAX] != NO_CONF)
 		set_pstate(cntd->user_pstate[MAX]);
-	else
+	else {
+		cntd->sys_pstate[MAX] = get_maximum_turbo_frequency();
 		set_pstate(cntd->sys_pstate[MAX]);
+	}
 }
 
 HIDDEN void set_min_pstate()
 {
-#ifdef INTEL
-#ifdef HWP_AVAIL
-	if (hwp_usage) {
-		set_max_epp();
-		set_min_aw();
-	}
-#endif
-#endif
+//#ifdef HWP_AVAIL
+//	if (hwp_usage) {
+//		set_max_epp();
+//		set_min_aw();
+//	}
+//#endif
 
 	if(cntd->user_pstate[MIN] != NO_CONF)
 		set_pstate(cntd->user_pstate[MIN]);
@@ -143,17 +152,16 @@ HIDDEN int get_maximum_turbo_frequency()
 	gethostname(hostname, sizeof(hostname));
 	PMPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-#ifdef INTEL
 	if(cntd->enable_eam_freq) {
+#if !defined CPUFREQ && defined INTEL
 		int offset = MSR_TURBO_RATIO_LIMIT;
 #ifdef HWP_AVAIL
 		if (hwp_usage)
 			offset = IA32_HWP_CAPABILITIES;
 #endif
 		max_pstate = (int) (read_msr(offset) & 0xFF);
-	}
-	else
-	{
+
+		return max_pstate;
 #endif
 		char max_pstate_value[STRING_SIZE];
 		if(read_str_from_file(CPUINFO_MAX_FREQ, max_pstate_value) < 0)
@@ -163,54 +171,54 @@ HIDDEN int get_maximum_turbo_frequency()
 			PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 		}
 
-		double pstate_double = strtod(max_pstate_value, NULL) / 1.0E5;
-		int pstate_int = (int) pstate_double;
-		if(pstate_double == (double) pstate_int)
-			max_pstate = pstate_int;
-		else
-			max_pstate = pstate_int + 1;
-#ifdef INTEL
-	}
-#endif
+		double pstate_double = strtod(max_pstate_value, NULL);
+		max_pstate = (int) pstate_double;
 
-	return max_pstate;
+		return max_pstate;
+	}
 }
 
 HIDDEN int get_minimum_frequency()
 {
-#ifdef HWP_AVAIL
-	if (hwp_usage) {
-		int offset;
-		int min_pstate;
-
-		offset = IA32_HWP_CAPABILITIES;
-
-		min_pstate = (int)((read_msr(offset) >> 24)  & 0xFF);
-
-		return min_pstate;
-	}
-#endif
-	int world_rank;
-	char min_pstate_value[STRING_SIZE];
-	char hostname[STRING_SIZE];
-
-	gethostname(hostname, sizeof(hostname));
-	PMPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-	if(read_str_from_file(CPUINFO_MIN_FREQ, min_pstate_value) < 0)
+	if(cntd->enable_eam_freq)
 	{
-		fprintf(stderr, "Error: <COUNTDOWN-node:%s-rank:%d> Failed to read file: %s\n",
-			hostname, world_rank, CPUINFO_MIN_FREQ);
-		PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+#ifdef HWP_AVAIL
+		if (hwp_usage) {
+			int offset;
+			int min_pstate;
+
+			offset = IA32_HWP_CAPABILITIES;
+
+			min_pstate = (int)((read_msr(offset) >> 24)  & 0xFF);
+
+			return min_pstate;
+		}
+#endif
+		int world_rank;
+		char min_pstate_value[STRING_SIZE];
+		char hostname[STRING_SIZE];
+
+		gethostname(hostname, sizeof(hostname));
+		PMPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+		if(read_str_from_file(CPUINFO_MIN_FREQ, min_pstate_value) < 0)
+		{
+			fprintf(stderr, "Error: <COUNTDOWN-node:%s-rank:%d> Failed to read file: %s\n",
+				hostname, world_rank, CPUINFO_MIN_FREQ);
+			PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+		}
+		float pstate_float  = strtof(min_pstate_value, NULL);
+#if !defined CPUFREQ && defined INTEL
+		pstate_float = pstate_float / 1.0E5;
+#endif
+		return (int) pstate_float;
 	}
-	return (int) (strtof(min_pstate_value, NULL) / 1.0E5);
 }
 
 HIDDEN void pm_init()
 {
 	if(cntd->enable_eam_freq)
 	{
-#ifdef INTEL
 		int world_rank, errno;
 		char msr_path[STRING_SIZE];
 		char hostname[STRING_SIZE];
@@ -218,7 +226,7 @@ HIDDEN void pm_init()
 		gethostname(hostname, sizeof(hostname));
 		PMPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 		int cpu_id = cpu_id = sched_getcpu();
-
+#if !defined CPUFREQ && defined INTEL
 		if(cntd->force_msr)
 			snprintf(msr_path, STRING_SIZE, MSR_FILE, cpu_id);
 		else
@@ -246,8 +254,8 @@ HIDDEN void pm_finalize()
 {
 	if(cntd->enable_eam_freq)
 	{
+#if !defined CPUFREQ
 		set_max_pstate();
-#ifdef INTEL
 		close(cntd->msr_fd);
 #endif
 	}

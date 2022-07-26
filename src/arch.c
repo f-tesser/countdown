@@ -308,9 +308,13 @@ HIDDEN void init_perf()
 		perf_pe.type = PERF_TYPE_HARDWARE;
 		perf_pe.size = sizeof(perf_pe);
 		perf_pe.pinned = 1;
+		if (MAX_NUM_CUSTOM_PERF > 8 )
+			perf_pe.pinned = 0; // Being subject to multiplexing, event can not be pinned.
+								// pinned.
 		perf_pe.disabled = 1;
 		perf_pe.exclude_kernel = 1;
 		perf_pe.exclude_hv = 1;
+		perf_pe.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
 		
 		perf_pe.config = PERF_COUNT_HW_INSTRUCTIONS;
 		cntd->perf_fd[i][PERF_INST_RET] = perf_event_open(&perf_pe, pid, -1, -1, 0);
@@ -320,7 +324,7 @@ HIDDEN void init_perf()
 				hostname, world_rank, pid);
 			PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 		}
-		ioctl(cntd->perf_fd[i][PERF_INST_RET], PERF_EVENT_IOC_RESET, 0);
+		//ioctl(cntd->perf_fd[i][PERF_INST_RET], PERF_EVENT_IOC_RESET, 0);
 
 		perf_pe.config = PERF_COUNT_HW_CPU_CYCLES;
 		cntd->perf_fd[i][PERF_CYCLES] = perf_event_open(&perf_pe, pid, -1, -1, 0);
@@ -330,7 +334,7 @@ HIDDEN void init_perf()
 				hostname, world_rank, pid);
 			PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 		}
-		ioctl(cntd->perf_fd[i][PERF_CYCLES], PERF_EVENT_IOC_RESET, 0);
+		//ioctl(cntd->perf_fd[i][PERF_CYCLES], PERF_EVENT_IOC_RESET, 0);
 
 #ifdef INTEL
 		perf_pe.config = PERF_COUNT_HW_REF_CPU_CYCLES;
@@ -341,7 +345,7 @@ HIDDEN void init_perf()
 				hostname, world_rank, pid);
 			PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 		}
-		ioctl(cntd->perf_fd[i][PERF_CYCLES_REF], PERF_EVENT_IOC_RESET, 0);
+		//ioctl(cntd->perf_fd[i][PERF_CYCLES_REF], PERF_EVENT_IOC_RESET, 0);
 #endif
 		for(j = 0; j < MAX_NUM_CUSTOM_PERF; j++)
 		{
@@ -356,7 +360,7 @@ HIDDEN void init_perf()
 						hostname, world_rank, pid);
 					PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 				}
-				ioctl(cntd->perf_fd[i][j], PERF_EVENT_IOC_RESET, 0);
+				//ioctl(cntd->perf_fd[i][j], PERF_EVENT_IOC_RESET, 0);
 			}
 		}
 	}
