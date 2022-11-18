@@ -31,6 +31,10 @@
 #include "cntd.h"
 
 static FILE *timeseries_fd;
+#ifdef MOSQUITTO_ENABLED
+static int mosquitto_energy_pkg[2] = {0};
+static int mosquitto_energy_dram[2] = {0};
+#endif
 
 static void print_rank_mpi(CNTD_RankInfo_t *rankinfo, uint64_t *mpi_type_cnt)
 {
@@ -348,6 +352,11 @@ HIDDEN void print_final_report()
 	PMPI_Gather(cntd->rank, 1, cpu_type, rankinfo, 1, cpu_type, 0, MPI_COMM_WORLD);
 	if(cntd->rank->local_rank == 0)
 	{
+#ifdef MOSQUITTO_ENABLED
+		send_mosquitto_report("end_time",
+							  0			,
+							  cntd->rank->exe_time[END]);
+#endif
 		PMPI_Gather(&cntd->node, 1, node_type, nodeinfo, 1, node_type, 0, cntd->comm_local_masters);
 #ifdef NVIDIA_GPU
 		PMPI_Gather(&cntd->gpu, 1, gpu_type, gpuinfo, 1, gpu_type, 0, cntd->comm_local_masters);
@@ -1429,11 +1438,43 @@ HIDDEN void print_timeseries_report(
 	fprintf(timeseries_fd, "%.3f", 
 		time_curr - cntd->rank->exe_time[START]);
 
+#ifdef MOSQUITTO_ENABLED
+	if(cntd->rank->local_rank == 0) {
+		int world_size;
+		PMPI_Comm_size(MPI_COMM_WORLD, &world_size);
+		send_mosquitto_report("num_sockets",
+							  0		   	   ,
+							  cntd->node.num_sockets);
+		send_mosquitto_report("num_cores",
+							  0		     ,
+							  cntd->node.num_cpus);
+		send_mosquitto_report("mpi_procs",
+							  0		     ,
+							  world_size);
+		send_mosquitto_report("start_time",
+							  0			  ,
+							  cntd->rank->exe_time[START]);
+		send_mosquitto_report("exe_time",
+							  0			,
+							 time_curr - cntd->rank->exe_time[START]);
+	}
+#endif
+
 	if(cntd->enable_power_monitor)
 	{
 		// Energy
 		for(i = 0; i < cntd->node.num_sockets; i++)
 		{
+#ifdef MOSQUITTO_ENABLED
+		mosquitto_energy_pkg[i] += energy_pkg[i];
+		mosquitto_energy_dram[i] += energy_dram[i];
+		send_mosquitto_report("energy_pkg"									  ,
+							  i * (cntd->node.num_cpus/cntd->node.num_sockets),
+							  mosquitto_energy_pkg[i]);
+		send_mosquitto_report("energy_dram"									  ,
+							  i * (cntd->node.num_cpus/cntd->node.num_sockets),
+							  mosquitto_energy_dram[i]);
+#endif
 #if defined(INTEL) || defined(POWER9) || defined(THUNDERX2)
 			fprintf(timeseries_fd, ";%.2f", 
 				energy_pkg[i]);
@@ -1458,6 +1499,14 @@ HIDDEN void print_timeseries_report(
 		// Power
 		for(i = 0; i < cntd->node.num_sockets; i++)
 		{
+#ifdef MOSQUITTO_ENABLED
+		send_mosquitto_report("power_pkg",
+							  i * (cntd->node.num_cpus/cntd->node.num_sockets),
+							  energy_pkg[i] / sample_duration);
+		send_mosquitto_report("power_dram",
+							  i * (cntd->node.num_cpus/cntd->node.num_sockets),
+							  energy_dram[i] / sample_duration);
+#endif
 #if defined(INTEL) || defined(POWER9) || defined(THUNDERX2)
 			fprintf(timeseries_fd, ";%.2f", 
 				energy_pkg[i] / sample_duration);
@@ -1510,21 +1559,21 @@ HIDDEN void print_timeseries_report(
 	// Application time
 	for(i = 0; i < cntd->local_rank_size; i++) {
 		fprintf(timeseries_fd, ";%.9f", cntd->local_ranks[i]->app_time[CURR]);
-#ifdef MOSQUITTO_ENABLED
-		send_mosquitto_report("app_time",
-							  i			,
-							  cntd->local_ranks[i]->app_time[CURR]);
-#endif
+//#ifdef MOSQUITTO_ENABLED
+//		send_mosquitto_report("app_time",
+//							  i			,
+//							  cntd->local_ranks[i]->app_time[CURR]);
+//#endif
 	}
 
 	// MPI time
 	for(i = 0; i < cntd->local_rank_size; i++) {
 		fprintf(timeseries_fd, ";%.9f", cntd->local_ranks[i]->mpi_time[CURR]);
-#ifdef MOSQUITTO_ENABLED
-		send_mosquitto_report("mpi_time",
-							  i			,
-							  cntd->local_ranks[i]->mpi_time[CURR]);
-#endif
+//#ifdef MOSQUITTO_ENABLED
+//		send_mosquitto_report("mpi_time",
+//							  i			,
+//							  cntd->local_ranks[i]->mpi_time[CURR]);
+//#endif
 	}
 
 	// MPI network send
