@@ -354,6 +354,12 @@ HIDDEN void start_cntd()
 		mosquitto_username_pw_set(mosq,
 								  "your_username",
 								  "your_password");
+
+		mosquitto_connect(mosq		,
+						  MQTT_HOST,
+						  MQTT_PORT,
+						  MQTT_KEEPALIVE);
+
 	}
 #endif
 
@@ -379,14 +385,6 @@ HIDDEN void stop_cntd()
 		eam_slack_finalize();
 
 	finalize_time_sample();
-
-#ifdef MOSQUITTO_ENABLED
-	if(cntd->rank->local_rank == 0) {
-		mosquitto_destroy(mosq);
-
-		mosquitto_lib_cleanup();
-	}
-#endif
 
 	if(cntd->enable_eam_freq) {
 #ifdef CPUFREQ
@@ -416,6 +414,16 @@ HIDDEN void stop_cntd()
 	
 	if(cntd->enable_timeseries_report)
 		finalize_timeseries_report();
+
+#ifdef MOSQUITTO_ENABLED
+	if(cntd->rank->local_rank == 0) {
+		mosquitto_disconnect(mosq);
+
+		mosquitto_destroy(mosq);
+
+		mosquitto_lib_cleanup();
+	}
+#endif
 
 	finalize_local_masters();
 

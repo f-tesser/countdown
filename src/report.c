@@ -1400,10 +1400,10 @@ HIDDEN void send_mosquitto_report(char* topic_ending,
 			 utc_secs);
 	p_length = strlen(payload);
 
-	rc = mosquitto_connect(mosq		,
-						   MQTT_HOST,
-						   MQTT_PORT,
-						   MQTT_KEEPALIVE);
+	//rc = mosquitto_connect(mosq		,
+	//					   MQTT_HOST,
+	//					   MQTT_PORT,
+	//					   MQTT_KEEPALIVE);
 
 	mosquitto_publish(mosq	  ,
 					  NULL	  ,
