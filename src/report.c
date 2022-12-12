@@ -1784,5 +1784,31 @@ HIDDEN void print_timeseries_report(
 		}
 	}
 
+#ifdef MOSQUITTO_ENABLED
+	if(cntd->rank->local_rank == 0) {
+		char topic_ending_count[STRING_SIZE];
+		char topic_ending_time[STRING_SIZE];
+
+		for(j = 0; j < NUM_MPI_TYPE; j++)
+		{
+			uint64_t count_mpi = 0;
+			double time_mpi = 0.0;
+
+			for(i = 0; i < cntd->local_rank_size; i++)
+			{
+				count_mpi += cntd->local_ranks[i]->cntd_mpi_type_cnt[j];
+				time_mpi += cntd->local_ranks[i]->cntd_mpi_type_time[j];
+			}
+			if (count_mpi > 0) {
+				snprintf(topic_ending_count, STRING_SIZE, "mpi_call/%s/mpi_call_count", mpi_type_str[j] + 2);
+				snprintf(topic_ending_time, STRING_SIZE, "mpi_call/%s/mpi_call_time", mpi_type_str[j] + 2);
+				send_mosquitto_report(topic_ending_count, 0, count_mpi);
+				send_mosquitto_report(topic_ending_time, 0, time_mpi);
+				printf("Local rank %d sent %d count and %f time mpi\n", cntd->rank->local_rank, count_mpi, time_mpi);
+			}
+		}
+	}
+#endif
+
 	fprintf(timeseries_fd, "\n");
 }
