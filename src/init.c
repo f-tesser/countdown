@@ -355,11 +355,22 @@ HIDDEN void start_cntd()
 								  "your_username",
 								  "your_password");
 
-		mosquitto_connect(mosq		,
-						  MQTT_HOST,
-						  MQTT_PORT,
-						  MQTT_KEEPALIVE);
+		int mosq_ret;
+		mosq_ret = mosquitto_connect(mosq	  ,
+									 MQTT_HOST,
+									 MQTT_PORT,
+									 MQTT_KEEPALIVE);
+		if (mosq_ret != MOSQ_ERR_SUCCESS) {
+			int world_rank;
+			char hostname[STRING_SIZE];
 
+			gethostname(hostname, sizeof(hostname));
+
+			PMPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+			fprintf(stderr, "Error: <COUNTDOWN-node:%s-rank:%d> The MOSQUITTO connection has failed!\n",
+					hostname, world_rank, MAX_SAMPLING_TIME_REPORT);
+			PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+		}
 	}
 #endif
 
