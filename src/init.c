@@ -330,7 +330,6 @@ HIDDEN void start_cntd()
 
 	// Read P-state configurations
 	init_arch_conf();
-
 	init_cpufreq();
 
 #ifdef MOSQUITTO_ENABLED

@@ -689,7 +689,6 @@ HIDDEN void init_arch_conf()
 	// Get cpu id
 	cntd->rank->cpu_id = sched_getcpu();
 
-
 	if(cntd->enable_eam_freq)
 	{
 		// Read minimum p-state

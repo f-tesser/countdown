@@ -216,6 +216,7 @@
 // \"cpufre\" files
 #define CPUINFO_MAX_FREQ 				"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"
 #define CPUINFO_MIN_FREQ 				"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq"
+#define CPUINFO_BASE_FREQ				"/sys/devices/system/cpu/cpu0/cpufreq/base_frequency"
 #define SCALING_MAX_FREQ				"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_max_freq"
 #define SCALING_MIN_FREQ				"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_min_freq"
 #define SCALING_GOVERNOR				"/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"

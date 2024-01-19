@@ -628,10 +628,17 @@ HIDDEN void get_rand_postfix(char *postfix, int size)
 #ifdef INTEL
 HIDDEN int read_intel_nom_freq()
 {
-    FILE *fd;
-    char *result;
     float nom_freq;
 
+	char result_value[STRING_SIZE];
+	if(!read_str_from_file(CPUINFO_BASE_FREQ, result_value))
+	{
+		nom_freq = strtof(result_value, NULL);
+		return (int)(nom_freq / 1000);
+	}
+
+    FILE *fd;
+    char *result;
     fd = fopen("/proc/cpuinfo", "r");
     if (fd == NULL)
     {
