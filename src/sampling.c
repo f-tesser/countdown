@@ -693,7 +693,7 @@ HIDDEN void finalize_time_sample()
 		// Delete sampling timer
 		delete_timer(cntd->timer);
 
-		// Last sample
+        // Last sample
 		time_sample(0, NULL, NULL);
 
 		if(cntd->enable_power_monitor)

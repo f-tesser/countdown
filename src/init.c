@@ -35,6 +35,11 @@ CNTD_t *cntd;
 MOSQUITTO_t* mosq;
 #endif
 
+#ifdef REGALE_ENABLED
+REGALE_t* reg;
+REGALE_PUBLISHER_t* reg_pub;
+#endif
+
 static void read_env()
 {
 	int i, j, world_rank;
@@ -357,6 +362,40 @@ HIDDEN void start_cntd()
 	}
 #endif
 
+#ifdef REGALE_ENABLED
+	if(cntd->rank->local_rank == 0) {
+		char client_id[STRING_SIZE];
+
+		memset(client_id,
+			   0	   	,
+			   STRING_SIZE);
+		snprintf(client_id						    ,
+				 STRING_SIZE					    ,
+				 "COUNTDOWN-REGALE-node:%s-rank:%d,",
+				 cntd->node.hostname			    ,
+				 cntd->rank->world_rank);
+
+		reg = regale_malloc(2);
+
+        regale_init(reg        ,
+                    STRING_SIZE,
+                    REGALE_CHAR,
+                    reg + 1);
+
+        regale_init(reg + 1    ,
+                    STRING_SIZE,
+                    REGALE_CHAR,
+                    NULL);
+
+        reg_pub = Regale_create_publisher(REGALE_FILE_TYPES   ,
+                                          REGALE_TYPE         ,
+                                          REGALE_FILE_PROFILES,
+                                          REGALE_TRANSPORT    ,
+                                          REGALE_TOPIC);
+	}
+
+#endif
+
 	// Init the node sampling
 	init_time_sample();
 
@@ -385,6 +424,13 @@ HIDDEN void stop_cntd()
 		mosquitto_destroy(mosq);
 
 		mosquitto_lib_cleanup();
+	}
+#endif
+
+#ifdef REGALE_ENABLED
+	if(cntd->rank->local_rank == 0) {
+        regale_dealloc(reg);
+        Regale_delete((RegaleObject*)reg_pub);
 	}
 #endif
 

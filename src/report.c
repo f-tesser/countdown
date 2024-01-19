@@ -1523,6 +1523,45 @@ HIDDEN void send_mosquitto_report(char* topic_ending,
 }
 #endif
 
+#ifdef REGALE_ENABLED
+HIDDEN void send_regale_report(char* topic_ending,
+							   int local_rank	 ,
+							   double payload_value) {
+	char payload[STRING_SIZE];
+	int p_length; // \"payload\" length.
+	char postfix[STRING_SIZE];
+	int rc = 0;
+	char topic[STRING_SIZE];
+	time_t utc_secs;
+
+	time(&utc_secs);
+
+	get_rand_postfix(postfix,
+					 STRING_SIZE);
+
+    snprintf(topic				   ,
+             STRING_SIZE		   ,
+             MQTT_TOPIC 		   ,
+			 postfix			   ,
+			 cntd->rank->hostname  ,
+			 cntd->local_ranks[local_rank]->cpu_id	  ,
+			 cntd->local_ranks[local_rank]->world_rank,
+			 cntd->local_ranks[local_rank]->local_rank,
+			 topic_ending);
+    snprintf(payload	  ,
+             STRING_SIZE  ,
+             MQTT_PAYLOAD ,
+			 payload_value,
+			 utc_secs);
+	p_length = strlen(payload);
+    strcpy((char*)((reg)->elements), topic);
+    strcpy((char*)((reg + 1)->elements), payload);
+
+    Regale_publish(reg_pub,
+                   reg);
+}
+#endif
+
 HIDDEN void print_timeseries_report(
 	double time_curr, double time_prev, 
 	double energy_sys, double *energy_pkg, double *energy_dram, 
@@ -1655,6 +1694,11 @@ HIDDEN void print_timeseries_report(
 		send_mosquitto_report("avg_freq",
 							  i			,
 							  curr_freq);
+#elif REGALE_ENABLED
+		curr_freq = (cntd->local_ranks[i]->perf[PERF_CYCLES_REF][CURR] > 0 ? ((double) cntd->local_ranks[i]->perf[PERF_CYCLES][CURR] / (double) cntd->local_ranks[i]->perf[PERF_CYCLES_REF][CURR]) * cntd->nom_freq_mhz : 0);
+		send_regale_report("avg_freq"   ,
+						   i			,
+						   curr_freq);
 #endif
 #else
 		fprintf(timeseries_fd, ";%.0f", 

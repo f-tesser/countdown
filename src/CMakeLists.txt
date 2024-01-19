@@ -55,6 +55,17 @@ if(CNTD_ENABLE_MOSQUITTO)
 	target_compile_definitions(cntd
 							   PRIVATE
 							   "MOSQUITTO_ENABLED")
+elseif(CNTD_ENABLE_REGALE)
+	target_link_libraries(cntd
+						  PRIVATE
+						  MPI::MPI_C
+						  cntd_hwloc
+						  cntd_regale)
+
+	target_compile_definitions(cntd
+							   PRIVATE
+							   "REGALE_ENABLED")
+
 else()
 	target_link_libraries(cntd
 						  PRIVATE

@@ -77,6 +77,18 @@
 #define MQTT_TOPIC	   "org/cineca/plugin/cntd_pub/job_id/%s/node/%s/cpu/%u/w_rank/%u/l_rank/%u/%s"
 #endif
 
+#ifdef REGALE_ENABLED
+#include "regale.h"
+#define MQTT_PAYLOAD         "%f;%ld"
+#define MQTT_TOPIC	         "org/cineca/plugin/cntd_pub/job_id/%s/node/%s/cpu/%u/w_rank/%u/l_rank/%u/%s"
+#define REGALE_TOPIC         "prova_cntd_examon"
+#define REGALE_FILE_TYPES    "/home/ftesser/install_try_mqtt_bridge/installation_regale/share/regale_types.xml"
+#define REGALE_FILE_PROFILES "/home/ftesser/install_try_mqtt_bridge/installation_regale/etc/regale_profiles.xml"
+#define REGALE_TYPE          "mqtt_string"
+#define REGALE_TRANSPORT     "tcpv4_client_transport"
+#endif
+
+
 // CNTD MPI Definitions
 #include "cntd_mpi_def.h"
 
@@ -570,6 +582,14 @@ typedef struct mosquitto MOSQUITTO_t;
 extern MOSQUITTO_t* mosq;
 #endif
 
+#ifdef REGALE_ENABLED
+typedef struct RegaleStruct REGALE_t;
+typedef struct RegalePublisher REGALE_PUBLISHER_t;
+
+extern REGALE_t* reg;
+extern REGALE_PUBLISHER_t* reg_pub;
+#endif
+
 typedef struct read_format {
 		uint64_t  value;
 		uint64_t  time_enabled;
@@ -653,6 +673,9 @@ void init_timeseries_report();
 void send_mosquitto_report(char* topic_ending,
 						   int local_rank	 ,
 						   double payload_value);
+void send_regale_report(char* topic_ending,
+						int local_rank	 ,
+						double payload_value);
 void print_timeseries_report(
 	double time_curr, double time_prev, 
 	double energy_sys, 

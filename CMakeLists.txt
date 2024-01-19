@@ -186,6 +186,20 @@ if(CNTD_ENABLE_MOSQUITTO)
 endif()
 
 ###########################################################
+# REGALE
+###########################################################
+if(CNTD_ENABLE_REGALE)
+	find_package(REGALE REQUIRED)
+	add_library(cntd_regale INTERFACE)
+	target_link_libraries(cntd_regale
+						  INTERFACE
+						  ${REGALE_LIBRARY})
+	target_include_directories(cntd_regale
+							   INTERFACE
+							   ${REGALE_INCLUDE_DIR})
+endif()
+
+###########################################################
 # Get compile  definitions
 ###########################################################
 if(DEFINED ENV{CNTD_GET_COMPILE_DEFINITIONS})
