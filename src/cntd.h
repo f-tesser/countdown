@@ -80,8 +80,9 @@
 #ifdef REGALE_ENABLED
 #include "regale.h"
 #define MQTT_PAYLOAD         "%f;%ld"
-#define MQTT_TOPIC	         "org/cineca/plugin/cntd_pub/job_id/%s/node/%s/cpu/%u/w_rank/%u/l_rank/%u/%s"
+#define MQTT_TOPIC	         "org/cineca/plugin/cntd_pub/chnl/data/job_id/%s/node/%s/cpu/%u/w_rank/%u/l_rank/%u/%s"
 #define REGALE_TOPIC         "prova_cntd_examon"
+#define REGALE_PARTITION     "partition_cntd_examon"
 #define REGALE_FILE_TYPES    "/home/ftesser/install_try_mqtt_bridge/installation_regale/share/regale_types.xml"
 #define REGALE_FILE_PROFILES "/home/ftesser/install_try_mqtt_bridge/installation_regale/etc/regale_profiles.xml"
 #define REGALE_TYPE          "mqtt_string"

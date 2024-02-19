@@ -391,7 +391,8 @@ HIDDEN void start_cntd()
                                           REGALE_TYPE         ,
                                           REGALE_FILE_PROFILES,
                                           REGALE_TRANSPORT    ,
-                                          REGALE_TOPIC);
+                                          REGALE_TOPIC        ,
+                                          REGALE_PARTITION);
 	}
 
 #endif

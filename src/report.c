@@ -1557,6 +1557,10 @@ HIDDEN void send_regale_report(char* topic_ending,
     strcpy((char*)((reg)->elements), topic);
     strcpy((char*)((reg + 1)->elements), payload);
 
+    printf("Proc[%d]: %s %s\n"                      ,
+           cntd->local_ranks[local_rank]->world_rank,
+           topic                                    ,
+           payload);
     Regale_publish(reg_pub,
                    reg);
 }
