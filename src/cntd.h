@@ -78,15 +78,39 @@
 #endif
 
 #ifdef REGALE_ENABLED
-#include "regale.h"
-#define MQTT_PAYLOAD         "%f;%ld"
-#define MQTT_TOPIC	         "org/cineca/plugin/cntd_pub/chnl/data/job_id/%s/node/%s/cpu/%u/w_rank/%u/l_rank/%u/%s"
-#define REGALE_TOPIC         "prova_cntd_examon"
+#include "regale_core.h"
+#include "regale_internals.h"
+#include "Monitor/regale_monitor.h"
+#ifdef CNTD_REGALE_TOPIC
+#define REGALE_TOPIC         CNTD_REGALE_TOPIC
+#else
+#define REGALE_TOPIC         "try_cntd_examon"
+#endif
+#ifdef CNTD_REGALE_PARTITION
+#define REGALE_PARTITION     CNTD_REGALE_PARTITION
+#else
 #define REGALE_PARTITION     "partition_cntd_examon"
-#define REGALE_FILE_TYPES    "/home/ftesser/install_try_mqtt_bridge/installation_regale/share/regale_types.xml"
-#define REGALE_FILE_PROFILES "/home/ftesser/install_try_mqtt_bridge/installation_regale/etc/regale_profiles.xml"
+#endif
+#ifdef CNTD_REGALE_FILE_TYPES
+#define REGALE_FILE_TYPES    CNTD_REGALE_FILE_TYPES
+#else
+#define REGALE_FILE_TYPES    "/usr/local/share/regale_types.xml"
+#endif
+#ifdef CNTD_REGALEE_FILE_PROFILES
+#define REGALE_FILE_PROFILES CNTD_REGALE_FILE_PROFILES
+#else
+#define REGALE_FILE_PROFILES "/usr/local/etc/regale_profiles.xml"
+#endif
+#ifdef CNTD_REGALE_TYPE
+#define REGALE_TYPE          CNTD_REGALE_TYPE
+#else
 #define REGALE_TYPE          "mqtt_string"
+#endif
+#ifdef CNTD_REGALE_TRANSPORT
+#define REGALE_TRANSPORT     CNTD_REGALE_TRANSPORT
+#else
 #define REGALE_TRANSPORT     "tcpv4_client_transport"
+#endif
 #endif
 
 
@@ -584,11 +608,7 @@ extern MOSQUITTO_t* mosq;
 #endif
 
 #ifdef REGALE_ENABLED
-typedef struct RegaleStruct REGALE_t;
-typedef struct RegalePublisher REGALE_PUBLISHER_t;
-
-extern REGALE_t* reg;
-extern REGALE_PUBLISHER_t* reg_pub;
+extern regale_handler_t regale_handler_monitor;
 #endif
 
 typedef struct read_format {
@@ -674,8 +694,7 @@ void init_timeseries_report();
 void send_mosquitto_report(char* topic_ending,
 						   int local_rank	 ,
 						   double payload_value);
-void send_regale_report(char* topic_ending,
-						int local_rank	 ,
+void send_regale_report(int local_rank	 ,
 						double payload_value);
 void print_timeseries_report(
 	double time_curr, double time_prev, 

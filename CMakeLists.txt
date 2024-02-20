@@ -76,6 +76,13 @@ option(CNTD_ENABLE_MOSQUITTO
 	   OFF)
 
 ###########################################################
+# REGALE Options
+###########################################################
+option(CNTD_ENABLE_REGALE
+	   "Enable REGALE communication layer"
+	   OFF)
+
+###########################################################
 # HWP/CPUFREQ Options
 ###########################################################
 option(CNTD_HWP_AUTO_DISCOVER "Find automagically if hwp-states are available" ON)
@@ -193,10 +200,10 @@ if(CNTD_ENABLE_REGALE)
 	add_library(cntd_regale INTERFACE)
 	target_link_libraries(cntd_regale
 						  INTERFACE
-						  ${REGALE_LIBRARY})
+						  ${REGALE_LIBRARIES})
 	target_include_directories(cntd_regale
 							   INTERFACE
-							   ${REGALE_INCLUDE_DIR})
+							   ${REGALE_INCLUDE_DIRS})
 endif()
 
 ###########################################################

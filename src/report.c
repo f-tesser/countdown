@@ -1524,45 +1524,28 @@ HIDDEN void send_mosquitto_report(char* topic_ending,
 #endif
 
 #ifdef REGALE_ENABLED
-HIDDEN void send_regale_report(char* topic_ending,
-							   int local_rank	 ,
+HIDDEN void send_regale_report(int local_rank,
 							   double payload_value) {
-	char payload[STRING_SIZE];
-	int p_length; // \"payload\" length.
-	char postfix[STRING_SIZE];
-	int rc = 0;
-	char topic[STRING_SIZE];
 	time_t utc_secs;
 
 	time(&utc_secs);
 
-	get_rand_postfix(postfix,
-					 STRING_SIZE);
+    regale_job_id_t job_id;
+    regale_job_data_t job_data;
+    regale_metric_t metric = AVG_CPU_FREQ;
 
-    snprintf(topic				   ,
-             STRING_SIZE		   ,
-             MQTT_TOPIC 		   ,
-			 postfix			   ,
-			 cntd->rank->hostname  ,
-			 cntd->local_ranks[local_rank]->cpu_id	  ,
-			 cntd->local_ranks[local_rank]->world_rank,
-			 cntd->local_ranks[local_rank]->local_rank,
-			 topic_ending);
-    snprintf(payload	  ,
-             STRING_SIZE  ,
-             MQTT_PAYLOAD ,
-			 payload_value,
-			 utc_secs);
-	p_length = strlen(payload);
-    strcpy((char*)((reg)->elements), topic);
-    strcpy((char*)((reg + 1)->elements), payload);
+    job_id.job_id = cntd->local_ranks[local_rank]->pid;
+    job_id.step_id = 0;
+    job_id.node_id = 0;
+    job_id.app_id = cntd->local_ranks[local_rank]->world_rank;
+    job_id.task_id = cntd->local_ranks[local_rank]->local_rank;
+    job_data.metric = metric;
+    job_data.value = (float)payload_value;
+    job_data.start_time = utc_secs;
+    job_data.end_time = utc_secs;
 
-    printf("Proc[%d]: %s %s\n"                      ,
-           cntd->local_ranks[local_rank]->world_rank,
-           topic                                    ,
-           payload);
-    Regale_publish(reg_pub,
-                   reg);
+    regale_report_job_telemetry(regale_handler_monitor, &job_id, &job_data);
+
 }
 #endif
 
@@ -1700,8 +1683,7 @@ HIDDEN void print_timeseries_report(
 							  curr_freq);
 #elif REGALE_ENABLED
 		curr_freq = (cntd->local_ranks[i]->perf[PERF_CYCLES_REF][CURR] > 0 ? ((double) cntd->local_ranks[i]->perf[PERF_CYCLES][CURR] / (double) cntd->local_ranks[i]->perf[PERF_CYCLES_REF][CURR]) * cntd->nom_freq_mhz : 0);
-		send_regale_report("avg_freq"   ,
-						   i			,
+		send_regale_report(i,
 						   curr_freq);
 #endif
 #else

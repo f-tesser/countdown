@@ -1,23 +1,44 @@
-if (NOT REGALE_INCLUDE_DIR)
+if (NOT REGALE_INCLUDE_DIRS)
     find_path(
-        REGALE_INCLUDE_DIR
-        NAMES "regale.h"
+        REGALE_CORE_INCLUDE_DIR
+        NAMES "regale_core.h"
         HINTS ${REGALE_ROOT}
         PATH_SUFFIXES "include")
+    find_path(
+        REGALE_INTERNALS_INCLUDE_DIR
+        NAMES "regale_internals.h"
+        HINTS ${REGALE_ROOT}
+        PATH_SUFFIXES "include")
+    find_path(
+        REGALE_MONITOR_CLIENT_INCLUDE_DIR
+        NAMES "regale_monitor.h"
+        HINTS ${REGALE_ROOT}
+        PATH_SUFFIXES "include/Monitor")
+
+    set(REGALE_INCLUDE_DIRS
+        ${REGALE_CORE_INCLUDE_DIR} ${REGALE_INTERNALS_INCLUDE_DIR} ${REGALE_MONITOR_INCLUDE_DIR})
 endif()
 
-if (NOT REGALE_LIBRARY)
+if (NOT REGALE_LIBRARIES)
     find_library(
-        REGALE_LIBRARY
-        NAMES "regale"
+        REGALE_CORE_LIBRARY
+        NAMES "regale_core"
         HINTS ${REGALE_ROOT}
         PATH_SUFFIXES "lib" "lib64")
+    find_library(
+        REGALE_MONITOR_CLIENT_LIBRARY
+        NAMES "regale_mon_client"
+        HINTS ${REGALE_ROOT}
+        PATH_SUFFIXES "lib" "lib64")
+
+    set(REGALE_LIBRARIES
+        ${REGALE_CORE_LIBRARY} ${REGALE_MONITOR_CLIENT_LIBRARY})
 endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(REGALE
-                                  REQUIRED_VARS REGALE_LIBRARY REGALE_INCLUDE_DIR
+                                  REQUIRED_VARS REGALE_LIBRARIES REGALE_INCLUDE_DIRS
                                   REASON_FAILURE_MESSAGE "Cannot find REGALE, maybe try defining the variable -DREGALE_ROOT as the path to its installation.")
 
-message(STATUS "regale include dir: ${REGALE_INCLUDE_DIR}")
-message(STATUS "libregale: ${REGALE_LIBRARY}")
+message(STATUS "regale include dir: ${REGALE_INCLUDE_DIRS}")
+message(STATUS "libregale: ${REGALE_LIBRARIES}")

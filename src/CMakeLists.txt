@@ -174,6 +174,42 @@ if(DEFINED ENV{CNTD_MAX_NUM_MEM_CHANNELS_PER_SOCKET})
 							   CNTD_MAX_NUM_MEM_CHANNELS_PER_SOCKET=$ENV{CNTD_MAX_NUM_MEM_CHANNELS_PER_SOCKET})
 endif()
 
+###########################################################
+# REGALE Options
+###########################################################
+if(CNTD_ENABLE_REGALE)
+    if(DEFINED ENV{CNTD_REGALE_FILE_TYPES})
+    	target_compile_definitions(cntd
+    							   PRIVATE
+    							   CNTD_REGALE_FILE_TYPES=$ENV{CNTD_REGALE_FILE_TYPES})
+    endif()
+    if(DEFINED ENV{CNTD_REGALE_FILE_PROFILES})
+    	target_compile_definitions(cntd
+    							   PRIVATE
+    							   CNTD_REGALE_FILE_PROFILES=$ENV{CNTD_REGALE_FILE_PROFILES})
+    endif()
+    if(DEFINED ENV{CNTD_REGALE_TOPIC})
+    	target_compile_definitions(cntd
+    							   PRIVATE
+    							   CNTD_REGALE_TOPIC=$ENV{CNTD_REGALE_TOPIC})
+    endif()
+    if(DEFINED ENV{CNTD_REGALE_PARTITION})
+    	target_compile_definitions(cntd
+    							   PRIVATE
+    							   CNTD_REGALE_PARTITION=$ENV{CNTD_REGALE_PARTITION})
+    endif()
+    if(DEFINED ENV{CNTD_REGALE_TYPE})
+    	target_compile_definitions(cntd
+    							   PRIVATE
+    							   CNTD_REGALE_TYPE=$ENV{CNTD_REGALE_TYPE})
+    endif()
+    if(DEFINED ENV{CNTD_REGALE_TRANSPORT})
+    	target_compile_definitions(cntd
+    							   PRIVATE
+    							   CNTD_REGALE_TRANSPORT=$ENV{CNTD_REGALE_TRANSPORT})
+    endif()
+endif()
+
 # Install cntd
 install(TARGETS cntd
 	RUNTIME DESTINATION bin
