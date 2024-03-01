@@ -1547,6 +1547,31 @@ HIDDEN void send_regale_report(int local_rank,
     regale_report_job_telemetry(regale_handler_monitor, &job_id, &job_data);
 
 }
+
+HIDDEN void get_regale_metric(int local_rank) {
+	regale_device_t device;
+    regale_metric_t metric;
+    regale_metric_value_t metric_value;
+    regale_info_t node_info;
+
+    device.dev_id = (uint32_t)cntd->local_ranks[local_rank]->local_rank;
+    device.dev_type = CPU;
+
+    metric = CPU_POWER;
+
+	if (regale_nm_get_info(regale_handler_node_manager, &node_info) != REGALE_OK) {
+		regale_verbose(0,"JM: Error reading NM info\n");
+	} else {
+		regale_verbose(0,"JM: cluster NM info ok tool/version/subversion/info %s/%u/%u/%s\n",
+				node_info.tool_name, node_info.version, node_info.subversion, node_info.info_string);
+    }
+
+    //if (regale_nm_get_metric(regale_handler_node_manager, device, metric, &metric_value) != REGALE_OK) {
+    //    printf("JM: Error reading metric\n");
+    //} else {
+    //    printf("received freq %f for local rank %d\n", metric_value.metric_value[0], device.dev_id);
+    //}
+}
 #endif
 
 HIDDEN void print_timeseries_report(
@@ -1685,6 +1710,7 @@ HIDDEN void print_timeseries_report(
 		curr_freq = (cntd->local_ranks[i]->perf[PERF_CYCLES_REF][CURR] > 0 ? ((double) cntd->local_ranks[i]->perf[PERF_CYCLES][CURR] / (double) cntd->local_ranks[i]->perf[PERF_CYCLES_REF][CURR]) * cntd->nom_freq_mhz : 0);
 		send_regale_report(i,
 						   curr_freq);
+        get_regale_metric(i);
 #endif
 #else
 		fprintf(timeseries_fd, ";%.0f", 

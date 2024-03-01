@@ -193,10 +193,15 @@ if(CNTD_ENABLE_REGALE)
     							   PRIVATE
     							   CNTD_REGALE_TOPIC=$ENV{CNTD_REGALE_TOPIC})
     endif()
-    if(DEFINED ENV{CNTD_REGALE_PARTITION})
+    if(DEFINED ENV{CNTD_REGALE_MONITOR_PARTITION})
     	target_compile_definitions(cntd
     							   PRIVATE
-    							   CNTD_REGALE_PARTITION=$ENV{CNTD_REGALE_PARTITION})
+    							   CNTD_REGALE_MONITOR_PARTITION=$ENV{CNTD_REGALE_MONITOR_PARTITION})
+    endif()
+    if(DEFINED ENV{CNTD_REGALE_NODE_MANAGER_PARTITION})
+    	target_compile_definitions(cntd
+    							   PRIVATE
+    							   CNTD_REGALE_NODE_MANAGER_PARTITION=$ENV{CNTD_REGALE_NODE_MANAGER_PARTITION})
     endif()
     if(DEFINED ENV{CNTD_REGALE_TYPE})
     	target_compile_definitions(cntd

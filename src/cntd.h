@@ -81,15 +81,21 @@
 #include "regale_core.h"
 #include "regale_internals.h"
 #include "Monitor/regale_monitor.h"
+#include "NodeManager/regale_nm.h"
 #ifdef CNTD_REGALE_TOPIC
 #define REGALE_TOPIC         CNTD_REGALE_TOPIC
 #else
 #define REGALE_TOPIC         "try_cntd_examon"
 #endif
-#ifdef CNTD_REGALE_PARTITION
-#define REGALE_PARTITION     CNTD_REGALE_PARTITION
+#ifdef CNTD_REGALE_MONITOR_PARTITION
+#define REGALE_MONITOR_PARTITION     CNTD_REGALE_MONITOR_PARTITION
 #else
-#define REGALE_PARTITION     "partition_cntd_examon"
+#define REGALE_MONITOR_PARTITION     "monitor"
+#endif
+#ifdef CNTD_REGALE_NODE_MANAGER_PARTITION
+#define REGALE_NODE_MANAGER_PARTITION     CNTD_REGALE_NODE_MANAGER_PARTITION
+#else
+#define REGALE_NODE_MANAGER_PARTITION     "NodeManager"
 #endif
 #ifdef CNTD_REGALE_FILE_TYPES
 #define REGALE_FILE_TYPES    CNTD_REGALE_FILE_TYPES
@@ -109,7 +115,7 @@
 #ifdef CNTD_REGALE_TRANSPORT
 #define REGALE_TRANSPORT     CNTD_REGALE_TRANSPORT
 #else
-#define REGALE_TRANSPORT     "tcpv4_client_transport"
+#define REGALE_TRANSPORT     "shm_transport"
 #endif
 #endif
 
@@ -609,6 +615,7 @@ extern MOSQUITTO_t* mosq;
 
 #ifdef REGALE_ENABLED
 extern regale_handler_t regale_handler_monitor;
+extern regale_handler_t regale_handler_node_manager;
 #endif
 
 typedef struct read_format {
@@ -696,6 +703,7 @@ void send_mosquitto_report(char* topic_ending,
 						   double payload_value);
 void send_regale_report(int local_rank	 ,
 						double payload_value);
+void get_regale_metric(int local_rank);
 void print_timeseries_report(
 	double time_curr, double time_prev, 
 	double energy_sys, 

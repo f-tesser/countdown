@@ -37,6 +37,7 @@ MOSQUITTO_t* mosq;
 
 #ifdef REGALE_ENABLED
 regale_handler_t regale_handler_monitor;
+regale_handler_t regale_handler_node_manager;
 #endif
 
 static void read_env()
@@ -363,10 +364,14 @@ HIDDEN void start_cntd()
 
 #ifdef REGALE_ENABLED
 	if(cntd->rank->local_rank == 0) {
-        regale_handler_monitor = regale_monitor_init(REGALE_PARTITION    ,
-                                                     REGALE_FILE_TYPES   ,
-                                                     REGALE_FILE_PROFILES,
-                                                     REGALE_TRANSPORT);
+        regale_handler_monitor = regale_monitor_init(REGALE_MONITOR_PARTITION,
+                                                     REGALE_FILE_TYPES       ,
+                                                     REGALE_FILE_PROFILES    ,
+                                                     "udpv4_transport");
+        regale_handler_node_manager = regale_nm_init(REGALE_NODE_MANAGER_PARTITION,
+                                                     REGALE_FILE_TYPES            ,
+                                                     REGALE_FILE_PROFILES         ,
+                                                     "udpv4_transport");
 	}
 
 #endif
@@ -405,6 +410,7 @@ HIDDEN void stop_cntd()
 #ifdef REGALE_ENABLED
 	if(cntd->rank->local_rank == 0) {
         regale_monitor_finalize(&regale_handler_monitor);
+        regale_nm_finalize(&regale_handler_node_manager);
 	}
 #endif
 

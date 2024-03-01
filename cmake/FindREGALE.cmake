@@ -14,9 +14,14 @@ if (NOT REGALE_INCLUDE_DIRS)
         NAMES "regale_monitor.h"
         HINTS ${REGALE_ROOT}
         PATH_SUFFIXES "include/Monitor")
+    find_path(
+        REGALE_NODE_MANAGER_CLIENT_INCLUDE_DIR
+        NAMES "regale_nm.h"
+        HINTS ${REGALE_ROOT}
+        PATH_SUFFIXES "include/NodeManager")
 
     set(REGALE_INCLUDE_DIRS
-        ${REGALE_CORE_INCLUDE_DIR} ${REGALE_INTERNALS_INCLUDE_DIR} ${REGALE_MONITOR_INCLUDE_DIR})
+        ${REGALE_CORE_INCLUDE_DIR} ${REGALE_INTERNALS_INCLUDE_DIR} ${REGALE_MONITOR_INCLUDE_DIR} ${REGALE_NODE_MANAGER_INCLUDE_DIR})
 endif()
 
 if (NOT REGALE_LIBRARIES)
@@ -30,9 +35,14 @@ if (NOT REGALE_LIBRARIES)
         NAMES "regale_mon_client"
         HINTS ${REGALE_ROOT}
         PATH_SUFFIXES "lib" "lib64")
+    find_library(
+        REGALE_NODE_MANAGER_CLIENT_LIBRARY
+        NAMES "regale_nm_client"
+        HINTS ${REGALE_ROOT}
+        PATH_SUFFIXES "lib" "lib64")
 
     set(REGALE_LIBRARIES
-        ${REGALE_CORE_LIBRARY} ${REGALE_MONITOR_CLIENT_LIBRARY})
+        ${REGALE_CORE_LIBRARY} ${REGALE_MONITOR_CLIENT_LIBRARY} ${REGALE_NODE_MANAGER_CLIENT_LIBRARY})
 endif()
 
 include(FindPackageHandleStandardArgs)
