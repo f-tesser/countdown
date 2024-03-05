@@ -1558,7 +1558,6 @@ HIDDEN void get_regale_metric(int local_rank) {
     device.dev_type = CPU;
 
     metric = CPU_POWER;
-
 	if (regale_nm_get_info(regale_handler_node_manager, &node_info) != REGALE_OK) {
 		regale_verbose(0,"JM: Error reading NM info\n");
 	} else {
@@ -1571,6 +1570,32 @@ HIDDEN void get_regale_metric(int local_rank) {
     //} else {
     //    printf("received freq %f for local rank %d\n", metric_value.metric_value[0], device.dev_id);
     //}
+}
+
+HIDDEN void set_regale_freq() {
+	regale_device_t device;
+    regale_conf_t configuration;
+    regale_conf_data_t configuration_data;
+
+    device.dev_id = NO_ID;
+    device.dev_type = CPU;
+    configuration = FREQUENCY;
+    configuration_data.info.freq_info.count = 1;
+    configuration_data.info.freq_info.turbo_enabled = 0;
+    uint32_t frequency_set = 25000;
+    configuration_data.info.freq_info.frequency_list = &frequency_set;
+
+
+	if (regale_nm_set_conf(regale_handler_node_manager,
+                           device                     ,
+                           configuration              ,
+                           &configuration_data        ,
+                           0) != REGALE_OK) {
+		regale_verbose(0,"JM: Error setting frequency\n");
+	} else {
+		regale_verbose(0,"JM: frequency set to %d\n",
+                       frequency_set);
+    }
 }
 #endif
 
@@ -1717,6 +1742,9 @@ HIDDEN void print_timeseries_report(
 			(double) cntd->local_ranks[i]->perf[PERF_CYCLES][CURR] / ((double) sample_duration * 1.0E6));
 #endif
 	}
+#ifdef REGALE_ENABLED
+    set_regale_freq();
+#endif
 
     // Average Load
 	for(i = 0; i < cntd->local_rank_size; i++)

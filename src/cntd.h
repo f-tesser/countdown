@@ -95,7 +95,7 @@
 #ifdef CNTD_REGALE_NODE_MANAGER_PARTITION
 #define REGALE_NODE_MANAGER_PARTITION     CNTD_REGALE_NODE_MANAGER_PARTITION
 #else
-#define REGALE_NODE_MANAGER_PARTITION     "NodeManager"
+#define REGALE_NODE_MANAGER_PARTITION     "NodeManager*"
 #endif
 #ifdef CNTD_REGALE_FILE_TYPES
 #define REGALE_FILE_TYPES    CNTD_REGALE_FILE_TYPES
@@ -704,6 +704,7 @@ void send_mosquitto_report(char* topic_ending,
 void send_regale_report(int local_rank	 ,
 						double payload_value);
 void get_regale_metric(int local_rank);
+void set_regale_freq();
 void print_timeseries_report(
 	double time_curr, double time_prev, 
 	double energy_sys, 
