@@ -1560,10 +1560,11 @@ HIDDEN void get_regale_metric(int local_rank) {
     metric = CPU_POWER;
 	if (regale_nm_get_info(regale_handler_node_manager, &node_info) != REGALE_OK) {
 		regale_verbose(0,"JM: Error reading NM info\n");
-	} else {
-		regale_verbose(0,"JM: cluster NM info ok tool/version/subversion/info %s/%u/%u/%s\n",
-				node_info.tool_name, node_info.version, node_info.subversion, node_info.info_string);
     }
+	//} else {
+	//	regale_verbose(0,"JM: cluster NM info ok tool/version/subversion/info %s/%u/%u/%s\n",
+	//			node_info.tool_name, node_info.version, node_info.subversion, node_info.info_string);
+    //}
 
     //if (regale_nm_get_metric(regale_handler_node_manager, device, metric, &metric_value) != REGALE_OK) {
     //    printf("JM: Error reading metric\n");
@@ -1592,10 +1593,11 @@ HIDDEN void set_regale_freq() {
                            &configuration_data        ,
                            0) != REGALE_OK) {
 		regale_verbose(0,"JM: Error setting frequency\n");
-	} else {
-		regale_verbose(0,"JM: frequency set to %d\n",
-                       frequency_set);
     }
+	//} else {
+	//	regale_verbose(0,"JM: frequency set to %d\n",
+    //                   frequency_set);
+    //}
 }
 #endif
 
