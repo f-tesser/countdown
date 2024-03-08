@@ -1573,6 +1573,30 @@ HIDDEN void get_regale_metric(int local_rank) {
     //}
 }
 
+HIDDEN void get_regale_current_freq(int local_rank) {
+
+	regale_device_t device;
+    regale_conf_t configuration;
+    regale_conf_data_t configuration_data = {0};
+
+    device.dev_id = 1; // It is possible to use \"NO_ID\" to get the frequencies of all the cores
+    device.dev_type = CPU;
+    configuration = FREQUENCY;
+
+	if (regale_nm_get_current_conf(regale_handler_node_manager,
+                                   device                     ,
+                                   configuration              ,
+                                   &configuration_data) != REGALE_OK) {
+		regale_verbose(0,"JM: Error getting current frequency\n");
+    }
+
+    int n_frequencies = configuration_data.info.freq_info.count;
+    printf("Received from local rank %d the following frequencies:", local_rank);
+    for (int i = 0; i < n_frequencies; i++)
+        printf(" %d", configuration_data.info.freq_info.frequency_list[i]);
+    printf("\n");
+}
+
 HIDDEN void set_regale_freq() {
 	regale_device_t device;
     regale_conf_t configuration;
@@ -1738,6 +1762,7 @@ HIDDEN void print_timeseries_report(
 		send_regale_report(i,
 						   curr_freq);
         get_regale_metric(i);
+        get_regale_current_freq(i);
 #endif
 #else
 		fprintf(timeseries_fd, ";%.0f", 

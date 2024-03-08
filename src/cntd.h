@@ -705,6 +705,7 @@ void send_regale_report(int local_rank	 ,
 						double payload_value);
 void get_regale_metric(int local_rank);
 void set_regale_freq();
+void get_regale_current_freq(int local_rank);
 void print_timeseries_report(
 	double time_curr, double time_prev, 
 	double energy_sys, 
