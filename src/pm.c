@@ -97,6 +97,9 @@ HIDDEN void set_pstate(int pstate)
 	write_int_to_file(filename			 ,
 					  scaling_max_freq_fd,
 					  pstate);
+#ifdef REGALE_ENABLED
+    regale_verbose(0,"JM: setting current max pstate %d\n", pstate);
+#endif
 
 	if (!cntd->userspace_governor) {
 		snprintf(filename			 ,
@@ -106,6 +109,9 @@ HIDDEN void set_pstate(int pstate)
 		write_int_to_file(filename				  		,
 						  cntd->policy_limits_freq_fd[3],
 						  pstate);
+#ifdef REGALE_ENABLED
+        regale_verbose(0,"JM: setting current min pstate %d\n", pstate);
+#endif
 	}
 #endif
 #if !defined CPUFREQ && defined INTEL
@@ -129,57 +135,32 @@ HIDDEN void set_pstate(int pstate)
 	}
 }
 
+#ifdef REGALE_ENABLED 
+HIDDEN void get_regale_current_freq() {
+
+	regale_device_t device;
+    regale_conf_t configuration;
+    regale_conf_data_t configuration_data = {0};
+
+    device.dev_id = 1; // It is possible to use \"NO_ID\" to get the frequencies of all the cores
+    device.dev_type = CPU;
+    configuration = FREQUENCY;
+
+	//cntd->sys_pstate[MAX] = 2000000;
+    if (regale_nm_get_current_conf(regale_handler_node_manager,
+                                   device                     ,
+                                   configuration              ,
+                                   &configuration_data) == REGALE_OK) {
+        cntd->sys_pstate[MAX] = configuration_data.info.freq_info.frequency_list[0];
+    }
+}
+#endif
+
 HIDDEN void set_max_pstate()
 {
 //#ifdef HWP_AVAIL
 //	if (hwp_usage) {
 //		set_min_epp();
-//		set_min_aw();
-//	}
-//#endif
-//#ifdef CPUFREQ
-//	if (cntd->userspace_governor) {
-//		int world_rank;
-//		char hostname[STRING_SIZE];
-//
-//		gethostname(hostname, sizeof(hostname));
-//		PMPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-//
-//		char temp_freq_value[STRING_SIZE];
-//		char filename[STRING_SIZE];
-//		snprintf(filename                 ,
-//		         STRING_SIZE              ,
-//		         SCALING_SETSPEED,
-//		         cntd->rank->cpu_id);
-//		if(read_str_from_file(filename, temp_freq_value) < 0)
-//		{
-//		    fprintf(stderr, "Error: <COUNTDOWN-node:%s-rank:%d> Failed to read file: %s\n",
-//		        hostname, world_rank, SCALING_SETSPEED);
-//		    PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-//		}
-//		float temp_freq_float  = strtof(temp_freq_value, NULL);
-//		int temp_freq = (int)temp_freq_float;
-//
-//		//int temp_freq = read_int_from_file(SCALING_SETSPEED,
-//		//								   cntd->policy_limits_freq_fd[4]);
-//		if (temp_freq != cntd->user_pstate[MAX])
-//			cntd->user_pstate[MAX] = temp_freq;
-//	}
-//#endif
-
-	if(cntd->user_pstate[MAX] != NO_CONF)
-		set_pstate(cntd->user_pstate[MAX]);
-	else {
-		//cntd->sys_pstate[MAX] = get_maximum_turbo_frequency();
-		set_pstate(cntd->sys_pstate[MAX]);
-	}
-}
-
-HIDDEN void set_min_pstate()
-{
-//#ifdef HWP_AVAIL
-//	if (hwp_usage) {
-//		set_max_epp();
 //		set_min_aw();
 //	}
 //#endif
@@ -205,19 +186,95 @@ HIDDEN void set_min_pstate()
 		}
 		float temp_freq_float  = strtof(temp_freq_value, NULL);
 		int temp_freq = (int)temp_freq_float;
-		if (temp_freq != cntd->sys_pstate[MAX])
-			cntd->sys_pstate[MAX] = temp_freq;
-		//cntd->user_pstate[MAX] = temp_freq;
-
-		//cntd->user_pstate[MAX] = read_int_from_file(SCALING_SETSPEED,
-		//											cntd->policy_limits_freq_fd[4]);
+		//fprintf(stderr, "INFO MAX PSTATE: <COUNTDOWN-node:%s-rank:%d> at file: %s, current  temp float freq:%f\n",
+		//        hostname, world_rank, filename, temp_freq_float);
+		//fprintf(stderr, "INFO MAX PSTATE: <COUNTDOWN-node:%s-rank:%d> at file: %s, current  MAX  freq:%d\n",
+		//        hostname, world_rank, filename, cntd->sys_pstate[MAX]);
+		if (temp_freq != cntd->user_pstate[MAX]) {
+            if (temp_freq != 1000000) 
+			    cntd->user_pstate[MAX] = temp_freq;
+		    //fprintf(stderr, "INFO MAX PSTATE: <COUNTDOWN-node:%s-rank:%d> at file: %s, next MAX freq:%d\n",
+		    //        hostname, world_rank, filename, temp_freq);
+        }
 	}
 #endif
 
+	if(cntd->user_pstate[MAX] != NO_CONF)
+		set_pstate(cntd->user_pstate[MAX]);
+	else {
+#ifdef REGALE_ENABLED 
+	    get_regale_current_freq();
+#endif
+		//cntd->sys_pstate[MAX] = get_maximum_turbo_frequency();
+		//cntd->sys_pstate[MAX]= 2000000;
+		set_pstate(cntd->sys_pstate[MAX]);
+#ifdef REGALE_ENABLED
+        regale_verbose(0,"JM: setting current max frequency %d\n", cntd->sys_pstate[MAX]);
+#endif
+	}
+}
+
+HIDDEN void set_min_pstate()
+{
+//#ifdef HWP_AVAIL
+//	if (hwp_usage) {
+//		set_max_epp();
+//		set_min_aw();
+//	}
+//#endif
+//#ifdef CPUFREQ
+//	if (cntd->userspace_governor) {
+//		int world_rank;
+//		char hostname[STRING_SIZE];
+//
+//		gethostname(hostname, sizeof(hostname));
+//		PMPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+//
+//		char temp_freq_value[STRING_SIZE];
+//		char filename[STRING_SIZE];
+//		snprintf(filename                 ,
+//		         STRING_SIZE              ,
+//		         SCALING_SETSPEED,
+//		         cntd->rank->cpu_id);
+//		if(read_str_from_file(filename, temp_freq_value) < 0)
+//		{
+//		    fprintf(stderr, "Error: <COUNTDOWN-node:%s-rank:%d> Failed to read file: %s\n",
+//		        hostname, world_rank, SCALING_SETSPEED);
+//		    PMPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+//		}
+//		float temp_freq_float  = strtof(temp_freq_value, NULL);
+//		int temp_freq = (int)temp_freq_float;
+//		//fprintf(stderr, "INFO: <COUNTDOWN-node:%s-rank:%d> at file: %s, current  temp float freq:%f\n",
+//		//        hostname, world_rank, filename, temp_freq_float);
+//		//fprintf(stderr, "INFO: <COUNTDOWN-node:%s-rank:%d> at file: %s, current  MAX  freq:%d\n",
+//		//        hostname, world_rank, filename, cntd->sys_pstate[MAX]);
+//		if (temp_freq != cntd->sys_pstate[MAX]) {
+//			cntd->sys_pstate[MAX] = temp_freq;
+//		    //fprintf(stderr, "INFO: <COUNTDOWN-node:%s-rank:%d> at file: %s, next MAX freq:%d\n",
+//		    //    hostname, world_rank, filename, temp_freq);
+//        }
+//	}
+//#endif
+
 	if(cntd->user_pstate[MIN] != NO_CONF)
 		set_pstate(cntd->user_pstate[MIN]);
-	else
+	else {
+		//int world_rank;
+		//char hostname[STRING_SIZE];
+
+		//gethostname(hostname, sizeof(hostname));
+		//PMPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+		//char temp_freq_value[STRING_SIZE];
+		//char filename[STRING_SIZE];
+		//snprintf(filename                 ,
+		//         STRING_SIZE              ,
+		//         SCALING_SETSPEED,
+		//         cntd->rank->cpu_id);
+        //fprintf(stderr, "INFO MIN PSTATE: <COUNTDOWN-node:%s-rank:%d> at file: %s, current freq: %d\n",
+        //        hostname, world_rank, filename, cntd->sys_pstate[MIN]);
 		set_pstate(cntd->sys_pstate[MIN]);
+    }
 }
 
 HIDDEN int get_maximum_turbo_frequency()

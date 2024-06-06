@@ -115,7 +115,7 @@
 #ifdef CNTD_REGALE_TRANSPORT
 #define REGALE_TRANSPORT     CNTD_REGALE_TRANSPORT
 #else
-#define REGALE_TRANSPORT     "shm_transport"
+#define REGALE_TRANSPORT     "udpv4_transport"
 #endif
 #endif
 
@@ -150,6 +150,7 @@
 #define TMP_TIME_SERIES_FILE			"%s/cntd_%s.%s.csv"
 #define TIME_SERIES_FILE				"%s/cntd_%s.csv"
 #define SHM_FILE						"/cntd_local_rank_%d.%s"
+
 
 // Hide symbols for external linking
 #define HIDDEN  __attribute__((visibility("hidden")))
@@ -705,7 +706,7 @@ void send_regale_report(int local_rank	 ,
 						double payload_value);
 void get_regale_metric(int local_rank);
 void set_regale_freq();
-void get_regale_current_freq(int local_rank);
+void get_regale_current_freq();
 void print_timeseries_report(
 	double time_curr, double time_prev, 
 	double energy_sys, 

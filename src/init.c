@@ -368,12 +368,19 @@ HIDDEN void start_cntd()
                                                      REGALE_FILE_TYPES       ,
                                                      REGALE_FILE_PROFILES    ,
                                                      "udpv4_transport");
-        regale_handler_node_manager = regale_nm_init(REGALE_NODE_MANAGER_PARTITION,
-                                                     REGALE_FILE_TYPES            ,
-                                                     REGALE_FILE_PROFILES         ,
-                                                     "udpv4_transport");
 	}
+	char hostname[STRING_SIZE];
+	gethostname(hostname, sizeof(hostname));
+    char partition_name[STRING_SIZE];
+    sprintf(partition_name, "NodeManager%s", hostname);
 
+    //regale_handler_node_manager = regale_nm_init(partition_name               ,
+    //regale_handler_node_manager = regale_nm_init(REGALE_NODE_MANAGER_PARTITION,
+    //                                             REGALE_FILE_TYPES            ,
+    //                                             REGALE_FILE_PROFILES         ,
+    //                                             "udpv4_transport");
+
+    regale_verb_enabled = 0;
 #endif
 
 	// Init the node sampling
@@ -410,8 +417,8 @@ HIDDEN void stop_cntd()
 #ifdef REGALE_ENABLED
 	if(cntd->rank->local_rank == 0) {
         regale_monitor_finalize(&regale_handler_monitor);
-        regale_nm_finalize(&regale_handler_node_manager);
 	}
+    regale_nm_finalize(&regale_handler_node_manager);
 #endif
 
 	if(cntd->enable_eam_freq) {

@@ -1572,30 +1572,23 @@ HIDDEN void get_regale_metric(int local_rank) {
     //    printf("received freq %f for local rank %d\n", metric_value.metric_value[0], device.dev_id);
     //}
 }
-
-HIDDEN void get_regale_current_freq(int local_rank) {
-
-	regale_device_t device;
-    regale_conf_t configuration;
-    regale_conf_data_t configuration_data = {0};
-
-    device.dev_id = 1; // It is possible to use \"NO_ID\" to get the frequencies of all the cores
-    device.dev_type = CPU;
-    configuration = FREQUENCY;
-
-	if (regale_nm_get_current_conf(regale_handler_node_manager,
-                                   device                     ,
-                                   configuration              ,
-                                   &configuration_data) != REGALE_OK) {
-		regale_verbose(0,"JM: Error getting current frequency\n");
-    }
-
-    int n_frequencies = configuration_data.info.freq_info.count;
-    printf("Received from local rank %d the following frequencies:", local_rank);
-    for (int i = 0; i < n_frequencies; i++)
-        printf(" %d", configuration_data.info.freq_info.frequency_list[i]);
-    printf("\n");
-}
+//HIDDEN void get_regale_current_freq() {
+//
+//	regale_device_t device;
+//    regale_conf_t configuration;
+//    regale_conf_data_t configuration_data = {0};
+//
+//    device.dev_id = 1; // It is possible to use \"NO_ID\" to get the frequencies of all the cores
+//    device.dev_type = CPU;
+//    configuration = FREQUENCY;
+//
+//	if (regale_nm_get_current_conf(regale_handler_node_manager,
+//                                   device                     ,
+//                                   configuration              ,
+//                                   &configuration_data) == REGALE_OK) {
+//        cntd->sys_pstate[MAX] = configuration_data.info.freq_info.frequency_list[0];
+//    }
+//}
 
 HIDDEN void set_regale_freq() {
 	regale_device_t device;
@@ -1761,8 +1754,8 @@ HIDDEN void print_timeseries_report(
 		curr_freq = (cntd->local_ranks[i]->perf[PERF_CYCLES_REF][CURR] > 0 ? ((double) cntd->local_ranks[i]->perf[PERF_CYCLES][CURR] / (double) cntd->local_ranks[i]->perf[PERF_CYCLES_REF][CURR]) * cntd->nom_freq_mhz : 0);
 		send_regale_report(i,
 						   curr_freq);
-        get_regale_metric(i);
-        get_regale_current_freq(i);
+        //get_regale_metric(i);
+        //get_regale_current_freq();
 #endif
 #else
 		fprintf(timeseries_fd, ";%.0f", 
@@ -1770,7 +1763,7 @@ HIDDEN void print_timeseries_report(
 #endif
 	}
 #ifdef REGALE_ENABLED
-    set_regale_freq();
+    //set_regale_freq();
 #endif
 
     // Average Load
